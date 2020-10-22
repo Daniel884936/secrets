@@ -8,7 +8,7 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return db_user
+    #return db_user
 
 def getUser_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()

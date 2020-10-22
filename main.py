@@ -20,5 +20,9 @@ app.include_router(
     tags=["indentity"],
     #dependencies=[Depends(get_token_header)],
     #dependencies=[Depends(get_db)],
-    responses={404: {"description": "Not found"}},
+    responses={404: {"description": "Not found"}}
 )
+
+@app.get('/')
+def getWelcome():
+    return {'welcome':'secrets API'}

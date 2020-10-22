@@ -1,8 +1,5 @@
 from sql.database import SessionLocal
 
-#Secret key for token
-SECRET_KEY = 'EDANIELTEJADA809'
-
 # Dependency 
 def get_db():
     db = SessionLocal()
@@ -10,4 +7,6 @@ def get_db():
         yield db
     finally: 
         db.close()
-        
+ 
+
+ 
