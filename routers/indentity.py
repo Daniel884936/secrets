@@ -6,12 +6,6 @@ from base.utils import get_db
 from base.token import Token
 
 router = APIRouter()
-""" @router.post('/register/',response_model=schemas.User)
-def create_user(user: schemas.UserCreate, db:Session = Depends(get_db)):
-    db_user = crud.getUser_by_email(db, email=user.email)
-    if db_user:
-        raise HTTPException(status_code=400, detail='Email already registered')
-    return crud.create_user(db= db, user = user) """
   
 @router.post('/register/{name}/{email}/{password}')
 def create_user(name, email,password, db:Session = Depends(get_db)):
@@ -35,13 +29,14 @@ def getUser(email, password,db:Session = Depends(get_db)):
         'token' : token
     }
 
-@router.put('/useredit/{oldemail}/{name}/{email}')
-def edit(oldEmail,name, email, db: Session = Depends(get_db)):
+@router.put('/userEditNameEmail/{oldemail}/{name}/{email}')
+def edit_name_email(oldEmail,name, email, db: Session = Depends(get_db)):
     userRquest = crud.getUser_by_email(db, email= oldEmail)
     if not userRquest:
         raise HTTPException(status_code=401, detail='User not found')
     #userToUpdate is the memory position
-    userUpdated = crud.updateUser(db,userToUpdate= userRquest, email = email, name = name)
+    userUpdated = crud.updateUser(db,userToUpdate= userRquest, email = email, name = name, 
+                                  password=userRquest.password)
     userToken = Token()
     newToken = userToken.generateToken(sub=userUpdated.id,userName=userUpdated.name,
                                        email=userUpdated.email)
@@ -49,15 +44,22 @@ def edit(oldEmail,name, email, db: Session = Depends(get_db)):
             'token': newToken}
 
 
-@router.put('/changepassword/{oldpassword}/{token}')
-def change_password(oldpassword,token):
+
+@router.put('/userChangepassword/{newPassword}/{token}')
+def change_password(newPassword,token, db:Session = Depends(get_db)):
     tokenInstance = Token()
+    #validate token decode
     user = tokenInstance.decodeToken(token)
     if not user:
         raise HTTPException(status_code=401, detail='unauthorized')
-    return user
+    userToUpdate = crud.getUser_by_email(db, user['email'])
+    if not userToUpdate:
+        raise HTTPException(status_code=401, detail='user not found')
+    userUpdated = crud.updateUser(db,userToUpdate= userToUpdate,email=userToUpdate.email, name=userToUpdate.name,
+                                  password=newPassword)
+    return {'status':'sucess'}
 
-#TODO
+
 def authenticate_user(email, password, db):
     user = crud.getUser_by_email(db,email=email)
     if not user:

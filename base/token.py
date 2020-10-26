@@ -15,7 +15,7 @@ class Token:
         encoded_jwt  = jwt.encode(userDict, self.SECRET_KEY, self.ALGORITHM)
         return encoded_jwt
     
-#TODO
+
     def decodeToken(self,token):
         try:
             user = jwt.decode(token,self.SECRET_KEY, self.ALGORITHM)
