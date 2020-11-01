@@ -2,19 +2,37 @@ from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 
-class UserBase(BaseModel):
-    name: str
+class ServerResult():
+    def __init__(self, token= '',status='', ok= False, forceLogin= False, data='' ):
+        pass
+        self.token=token
+        self.status = status
+        self.ok = ok
+        self.forceLogin = forceLogin
+        self.data = data
+    token=''
+    status = ''
+    ok = False
+    forceLogin = False
+    data = ''
+
+#-----------------------------------------------------------------------------------------------------
+
+class UserEmail(BaseModel):
     email:str
-
-class UserCreate(UserBase):
-    password: str
-
-class User(UserBase):
-    id:int
     
-    class Config:
-        orm_mode = True
+class UserPassword(BaseModel):
+    password:str
+
+class UserBase(UserEmail):
+    name: str
         
+class UserCreate(UserBase, UserPassword):
+    pass
+
+class UserLogin(UserEmail,UserPassword):
+    pass
+     
 #-----------------------------------------------------------------------------------------------------
 
 class SecretBase(BaseModel):
@@ -27,11 +45,7 @@ class SecretBase(BaseModel):
     log:float
 
 class SecretCreate(SecretBase):
-    #idUser: int
     pass
-
-class Secret(SecretBase):
+class SecretDelete(BaseModel):
     id:int
-    
-    class Config:
-        orm_mode = True
+

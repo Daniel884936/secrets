@@ -6,11 +6,12 @@ class Token:
     ALGORITHM= 'HS256'
     
     #this is the film to all tokens created 
-    def generateToken(self, sub, userName, email):
+    def generateToken(self, sub:int, userName, email, forceLogin:bool):
         userDict: dict = {
             "sub": sub,
             "name": userName,
-            "email": email
+            "email": email,
+            "forceLogin":forceLogin
         }
         encoded_jwt  = jwt.encode(userDict, self.SECRET_KEY, self.ALGORITHM)
         return encoded_jwt
@@ -22,6 +23,8 @@ class Token:
             return user
         except:
              return False
+    
+
           
         
     

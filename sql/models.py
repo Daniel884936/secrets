@@ -9,6 +9,7 @@ class User(Base):
     email = Column(String, unique=True, index= True)
     password = Column(String)
     secrets = relationship("Secret", back_populates="owner")
+    token = relationship("Token", back_populates= "owner")
     
     
 class Secret(Base):
@@ -25,14 +26,10 @@ class Secret(Base):
     owner  = relationship("User", back_populates="secrets")
     
 
-
-
-
-
-
-""" class Token(Base):
-    __tablename__= 'UserToken'
+class Token(Base):
+    __tablename__= 'token'
     id = Column(Integer,primary_key=True, index= True)
-    value = Column(String)
+    value = Column(String, index=True)
+    owner_id = Column(Integer,ForeignKey('users.id'))
     owner = relationship("User", back_populates="token")
-     """
+    

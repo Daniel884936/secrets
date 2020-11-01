@@ -6,11 +6,11 @@ from . import models , schemas
 
 def create_user(db: Session, user: schemas.UserCreate):
     #password = user.password to hash password 
-    db_user = models.User(email = user.email, password=user.password, name = user.name)
+    db_user = models.User(**user.dict())
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    #return db_user
+    return db_user
 
 def getUser_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()
@@ -44,4 +44,19 @@ def delete_secret(db:Session, idSecret:int):
     db.query(models.Secret).filter(models.Secret.id==idSecret).delete()
     db.commit()
     pass
+
+
+#SECTION Token---------------------------------------------------------------------------------
+def create_token(db:Session, token, idUser:int):
+    db_token = models.Token(value=token,owner_id=idUser)
+    db.add(db_token)
+    db.commit()
+    db.refresh(db_token)
+
+def getToken_db(db:Session, idUser):
+    return db.query(models.Token).filter(models.Token.owner_id==idUser).first()
+    
+def update_token_user(db:Session, tokenValue, idUser):
+    getToken_db(db,idUser).value = tokenValue
+    db.commit()
     

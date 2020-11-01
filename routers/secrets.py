@@ -1,26 +1,22 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from sql import crud, models, schemas
-from base.utils import get_db
+from base.utils import get_db, validate_if_logged
 from base.token import Token
 import datetime
 
 router = APIRouter()
 
-@router.post('create/{title}/{description}/{monetaryValue}/{date}/{place}/{lat}/{log}/{token}')
-def create(title,description,monetaryValue,date,place,lat,log,token, db:Session = Depends(get_db)):
-   validateFloat(monetaryValue, 'monetary value')
-   validateFloat(lat, 'lat')
-   validateFloat(lat, 'log')
-   datetimeParsed = parseToDateTime(date)
+@router.post('create/{token}')
+def create(secret:schemas.SecretCreate,token, db:Session = Depends(get_db)):
    tokenValid = token_is_valid(token)
    if tokenValid:
         userRequest = getUser(db,tokenValid)
         if userRequest:
-            secret:schemas.SecretCreate= schemas.SecretCreate(title = title, description = description, monetaryValue= monetaryValue
-                                                        ,date = datetimeParsed, place= place, lat = lat, log = log)
             crud.crate_secret(db, secret, userRequest.id)
-   return{'status':'sucess'}
+        if not validate_if_logged(db,userRequest.id):
+            return schemas.ServerResult(status='not logged', ok=False, forceLogin= False)
+        return schemas.ServerResult(status='sucess', ok=True, forceLogin= True)
     
     
 
@@ -31,17 +27,21 @@ def getSecrests_By_User(token, db:Session=Depends(get_db)):
         userRequest = getUser(db,tokenValid)
         if userRequest:
             items = crud.getSecrets_by_user(db, userRequest.id)
-    return items
+        if not validate_if_logged(db,userRequest.id):
+            return schemas.ServerResult(status='not logged', ok=False, forceLogin= False)
+    return schemas.ServerResult(status='sucess', ok=True, forceLogin= True, data=items)
 
 
-@router.delete('delete/{idSecret}/{token}')
-def delete(idSecret,token, db:Session = Depends(get_db)):
+@router.delete('delete/{token}')
+def delete(secret:schemas.SecretDelete,token, db:Session = Depends(get_db)):
     tokenValid = token_is_valid(token)
     if tokenValid:
         userRequest = getUser(db,tokenValid)
         if userRequest:
-            crud.delete_secret(db, idSecret)      
-    return{'status':'sucess'}
+            crud.delete_secret(db, secret.id)    
+        if not validate_if_logged(db,userRequest.id):
+            return schemas.ServerResult(status='not logged', ok=False, forceLogin= False)  
+    return schemas.ServerResult(status='sucess', ok=True, forceLogin= True)
 
 
 def token_is_valid(token):
@@ -57,19 +57,3 @@ def getUser(db:Session, token):
     if not userRequest:
         raise HTTPException(status_code=401, detail={"user not found"})
     return userRequest
-    
-    
-def validateFloat(number, invalidNumberMsg):
-    try:
-        number = float(number)
-    except:
-        raise HTTPException(status_code=400,detail=f"invalid value: {invalidNumberMsg}")
-    
-
-def parseToDateTime(datetimeParse):
-    try:
-        dateTimeParsed = datetime.datetime.strptime(datetimeParse,'%Y-%m-%d %H:%M:%S.%f')
-        return dateTimeParsed
-    except:
-        raise HTTPException(status_code=400,detail=f"invalid value: date, format valid: YYYY-mm-dd HH:MM:SS.ff ")
-    pass
